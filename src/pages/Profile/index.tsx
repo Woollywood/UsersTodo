@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { supabase } from '../services/supabaseClient';
+import { supabase } from '@/services/supabaseClient';
 import { type Store } from '@/store';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import Skeleton from '@mui/material/Skeleton';
+import Avatar from './Avatar';
 
 type FormData = {
 	email: string;
@@ -19,6 +20,7 @@ export function Component() {
 	const [isFormLoading, setFormLoading] = useState(true);
 	const [isLoading, setLoading] = useState(true);
 	const { user } = useSelector((state: Store) => state.user);
+	const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 	const { register, setValue, handleSubmit } = useForm<FormData>();
 
 	useEffect(() => {
@@ -39,15 +41,20 @@ export function Component() {
 			setValue('email', user?.email || '');
 			setValue('username', data?.username || '');
 			setValue('website', data?.website || '');
+			setAvatarUrl(data.avatar_url!);
 		}
 		getProfile().then(() => setFormLoading(false));
 	}, []);
 
 	const onSubmit = handleSubmit(async ({ username, website }) => {
 		setLoading(true);
-		const { error } = await supabase
-			.from('profiles')
-			.upsert({ id: user?.id || '', username, website, updated_at: new Date().toLocaleDateString() });
+		const { error } = await supabase.from('profiles').upsert({
+			id: user?.id || '',
+			username,
+			website,
+			updated_at: new Date().toLocaleDateString(),
+			avatar_url: avatarUrl,
+		});
 		setLoading(false);
 
 		if (error) {
@@ -64,14 +71,17 @@ export function Component() {
 					<Skeleton variant='text' sx={{ fontSize: '1rem' }} />
 				</div>
 			) : (
-				<form onSubmit={onSubmit} className='flex flex-col gap-4'>
-					<TextField label='Email' variant='standard' {...register('email')} />
-					<TextField label='Username' variant='standard' {...register('username')} />
-					<TextField label='Website' variant='standard' {...register('website')} />
-					<Button variant='contained' disabled={isLoading} type='submit'>
-						Update
-					</Button>
-				</form>
+				<div>
+					<Avatar className='mb-8' url={avatarUrl!} onChange={(avatarUrl) => setAvatarUrl(avatarUrl)} />
+					<form onSubmit={onSubmit} className='flex flex-col gap-4'>
+						<TextField label='Email' variant='standard' disabled {...register('email')} />
+						<TextField label='Username' variant='standard' {...register('username')} />
+						<TextField label='Website' variant='standard' {...register('website')} />
+						<Button variant='contained' disabled={isLoading} type='submit'>
+							Update
+						</Button>
+					</form>
+				</div>
 			)}
 		</>
 	);

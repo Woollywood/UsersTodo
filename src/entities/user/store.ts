@@ -8,18 +8,42 @@ export interface InitialState {
 	user: User | null;
 	session: Session | null;
 	status: Status;
+	error: string | null;
 }
 
 const initialState: InitialState = {
 	user: null,
 	session: null,
 	status: 'idle',
+	error: null,
 };
 
-export const signin = createAsyncThunk('@@user/signin', async ({ email }: { email: string }) => {
-	const { data } = await supabase.auth.signInWithOtp({ email });
-	return data;
-});
+export const signin = createAsyncThunk(
+	'@@user/signin',
+	async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
+		const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+		if (error) {
+			return rejectWithValue(error.message);
+		} else {
+			return data;
+		}
+	}
+);
+
+export const signup = createAsyncThunk(
+	'@@user/signup',
+	async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
+		const { data, error } = await supabase.auth.signUp({
+			email,
+			password,
+		});
+		if (error) {
+			return rejectWithValue(error.message);
+		} else {
+			return data;
+		}
+	}
+);
 
 export const signout = createAsyncThunk('@@user/signout', async () => {
 	await supabase.auth.signOut();
@@ -50,17 +74,27 @@ export const slice = createSlice({
 	},
 	extraReducers: (builder) => {
 		builder
-			.addCase(signin.rejected, (state, { error }) => {
-				console.log(error);
+			.addCase(signin.rejected, (state, { payload }) => {
 				state.status = 'rejected';
+				state.error = payload as string;
 			})
 			.addCase(signin.fulfilled, (state, { payload }) => {
 				state.status = 'completed';
-				state.session = payload.session;
-				state.user = payload.user;
+				state.session = payload?.session || null;
+				state.user = payload?.user || null;
+			})
+			.addCase(signup.rejected, (state, { payload }) => {
+				state.status = 'rejected';
+				state.error = payload as string;
+			})
+			.addCase(signup.fulfilled, (state, { payload }) => {
+				state.status = 'completed';
+				state.session = payload?.session || null;
+				state.user = payload?.user || null;
 			})
 			.addCase(signout.fulfilled, () => ({
 				...initialState,
+				status: 'completed',
 			}));
 	},
 });
