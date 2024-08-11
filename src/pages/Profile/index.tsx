@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import Skeleton from '@mui/material/Skeleton';
 import Avatar from './Avatar';
+import RequireAuth from '@/components/shared/RequireAuth';
 
 type FormData = {
 	email: string;
@@ -63,7 +64,7 @@ export function Component() {
 	});
 
 	return (
-		<>
+		<RequireAuth>
 			{isFormLoading ? (
 				<div className='space-y-4'>
 					<Skeleton variant='text' sx={{ fontSize: '1rem' }} />
@@ -83,6 +84,6 @@ export function Component() {
 					</form>
 				</div>
 			)}
-		</>
+		</RequireAuth>
 	);
 }

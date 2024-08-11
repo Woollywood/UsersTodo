@@ -14,16 +14,8 @@ import UserActions from './UserActions';
 
 const pages = [
 	{
-		label: 'Products',
-		path: '/products',
-	},
-	{
-		label: 'Pricing',
-		path: '/pricing',
-	},
-	{
-		label: 'Blog',
-		path: '/blog',
+		label: 'Todos',
+		path: '/todos',
 	},
 ];
 

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { useForm } from 'react-hook-form';
@@ -14,6 +15,8 @@ type FormData = {
 
 export function Component() {
 	const { enqueueSnackbar } = useSnackbar();
+	const location = useLocation();
+	const navigate = useNavigate();
 	const {
 		register,
 		handleSubmit,
@@ -26,6 +29,10 @@ export function Component() {
 		setLoading(true);
 		dispatch(signin({ email, password }))
 			.unwrap()
+			.then(() => {
+				const redirectUrl = location.state?.from || '/';
+				navigate(redirectUrl, { replace: true });
+			})
 			.catch((err) => enqueueSnackbar(err, { variant: 'error' }))
 			.finally(() => {
 				setLoading(false);
