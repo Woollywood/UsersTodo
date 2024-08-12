@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 
 import { reducer as userReducer } from '@/entities/user/store';
+import { reducer as todoReducer } from '@/entities/todo/store';
 
 export const store = configureStore({
 	reducer: {
 		user: userReducer,
+		todo: todoReducer,
 	},
 	devTools: true,
 });

@@ -4,14 +4,11 @@ import { useSelector } from 'react-redux';
 import RequireAuth from '@/components/shared/RequireAuth';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@mui/material/Button';
-import TodoList from '@/components/ui/TodoList';
-import { useTodos } from '@/entities/todo/hooks';
+import TodoList from './TodoList';
 import { type Store } from '@/store';
 
 export function Component() {
 	const { isComplete, profile } = useSelector((state: Store) => state.user);
-	const { user } = useSelector((state: Store) => state.user);
-	const todos = useTodos(user?.id || '');
 
 	return (
 		<RequireAuth>
@@ -33,7 +30,7 @@ export function Component() {
 							<Button variant='contained'>Edit</Button>
 						</Link>
 					</div>
-					<TodoList todos={todos} />
+					<TodoList />
 				</div>
 			)}
 		</RequireAuth>
