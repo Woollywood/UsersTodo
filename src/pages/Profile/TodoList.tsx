@@ -13,7 +13,7 @@ export default function TodoListWrapper() {
 
 	async function onCreate({ data: { title, body }, status }: SubmitType) {
 		try {
-			const { error } = await supabase
+			const { data, error } = await supabase
 				.from('todos')
 				.insert([{ status, title, body, user_id: profile?.id || '' }])
 				.select();
@@ -23,9 +23,11 @@ export default function TodoListWrapper() {
 			}
 
 			refetch();
+			return data;
 		} catch (error) {
 			const errorMessage = (error as Error).message;
 			enqueueSnackbar(errorMessage, { variant: 'error' });
+			return error;
 		}
 	}
 

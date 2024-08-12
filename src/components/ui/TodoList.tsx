@@ -6,13 +6,14 @@ import Avatar from './Avatar';
 import TodoActions from './TodoActions';
 import NewTodo from './NewTodo';
 import { type SubmitType } from './NewTodo';
+import { useSnackbar } from 'notistack';
 
 type Todo = Database['public']['Tables']['todos']['Row'];
 interface Props {
 	todos: Todo[];
 	profile?: Database['public']['Tables']['profiles']['Row'];
 	user?: User;
-	onCreate?: (data: SubmitType) => void;
+	onCreate?: (data: SubmitType) => Promise<unknown>;
 }
 
 type TodoStatus = Database['public']['Enums']['TODO_STATUS'];
@@ -56,8 +57,8 @@ export default function TodoList({ todos, profile, user, onCreate }: Props) {
 		}
 	}
 
-	async function onSubmit({ data, status }: SubmitType) {
-		onCreate!({ data, status });
+	function onSubmit({ data, status }: SubmitType) {
+		onCreate!({ data, status }).then(() => onCancel(status));
 	}
 
 	function onCancel(status: TodoStatus) {
