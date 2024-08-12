@@ -6,7 +6,6 @@ import Avatar from './Avatar';
 import TodoActions from './TodoActions';
 import NewTodo from './NewTodo';
 import { type SubmitType } from './NewTodo';
-import { useSnackbar } from 'notistack';
 
 type Todo = Database['public']['Tables']['todos']['Row'];
 interface Props {
