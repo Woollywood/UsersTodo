@@ -59,26 +59,24 @@ export default function Avatar({ className, url, onChange }: Props) {
 
 	return (
 		<>
-			{url.length === 0 ? (
-				<div className={[className, 'inline-flex flex-col items-center'].join(' ')}>
-					<Skeleton variant='circular' width={40} height={40} />
-				</div>
-			) : (
-				<div className={[className, 'inline-flex flex-col items-center'].join(' ')}>
-					<div className='flex h-32 aspect-square mb-4'>
+			<div className={[className, 'inline-flex flex-col items-center'].join(' ')}>
+				<div className='flex h-32 aspect-square mb-4'>
+					{url.length > 0 ? (
 						<AvatarWrapper src={url} className='!w-full !h-full' />
-					</div>
-					<Button
-						component='label'
-						variant='contained'
-						tabIndex={-1}
-						startIcon={<CloudUploadIcon />}
-						disabled={uploading}>
-						{uploading ? 'Uploading' : 'Upload file'}
-						<VisuallyHiddenInput type='file' onChange={uploadAvatar} />
-					</Button>
+					) : (
+						<Skeleton variant='circular' className='!w-full !h-full' />
+					)}
 				</div>
-			)}
+				<Button
+					component='label'
+					variant='contained'
+					tabIndex={-1}
+					startIcon={<CloudUploadIcon />}
+					disabled={uploading}>
+					{uploading ? 'Uploading' : 'Upload file'}
+					<VisuallyHiddenInput type='file' onChange={uploadAvatar} />
+				</Button>
+			</div>
 		</>
 	);
 }

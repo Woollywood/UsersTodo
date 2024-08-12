@@ -3,9 +3,10 @@ import { type User } from '@supabase/supabase-js';
 import { type Database } from '@/services/supabase';
 import Todo from './Todo';
 import Avatar from './Avatar';
-import TodoActions from './TodoActions';
 import NewTodo from './NewTodo';
+import TodoCreate from './TodoCreate';
 import { type SubmitType } from './NewTodo';
+import ScrollToChildren from '../shared/ScrollToChildren';
 
 type Todo = Database['public']['Tables']['todos']['Row'];
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 	profile?: Database['public']['Tables']['profiles']['Row'];
 	user?: User;
 	onCreate?: (data: SubmitType) => Promise<unknown>;
+	onDelete?: (id: number) => void;
 }
 
 type TodoStatus = Database['public']['Enums']['TODO_STATUS'];
@@ -22,7 +24,7 @@ type ColumnState = {
 	creating: boolean;
 };
 
-export default function TodoList({ todos, profile, user, onCreate }: Props) {
+export default function TodoList({ todos, profile, user, onCreate, onDelete }: Props) {
 	const [creatingState, setCreatingState] = useState<TodoStatus[] | null>(null);
 
 	const columns: ColumnState[] = [
@@ -74,19 +76,23 @@ export default function TodoList({ todos, profile, user, onCreate }: Props) {
 			{columns.map((column) => (
 				<div key={column.status}>
 					<div className='py-6 grid grid-cols-[1fr_auto] items-center gap-4'>
-						<h2>{column.status}</h2>
-						{user && <TodoActions onCreate={() => onCreating(column.status)} />}
+						<h2>
+							{column.status} ({column.items.length})
+						</h2>
+						{user && <TodoCreate onCreate={() => onCreating(column.status)} />}
 					</div>
-					<div className='flex flex-col gap-2'>
+					<div className='flex flex-col gap-6'>
 						{column.items.map((todo) => (
-							<Todo key={todo.id} {...todo} />
+							<Todo key={todo.id} {...todo} user={user} profile={profile} onDelete={onDelete} />
 						))}
 						{creatingState?.find((status) => column.status === status) && (
-							<NewTodo
-								status={column.status}
-								onSubmit={onSubmit}
-								onCancel={(status) => onCancel(status)}
-							/>
+							<ScrollToChildren>
+								<NewTodo
+									status={column.status}
+									onSubmit={onSubmit}
+									onCancel={(status) => onCancel(status)}
+								/>
+							</ScrollToChildren>
 						)}
 					</div>
 				</div>

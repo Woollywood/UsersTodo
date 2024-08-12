@@ -39,22 +39,24 @@ export default function UserActions() {
 
 	useEffect(() => {
 		async function downloadImage() {
-			try {
-				const { data, error } = await supabase.storage.from('avatars').download(profile?.avatar_url || '');
-				if (error) {
-					throw error;
+			if (profile?.avatar_url) {
+				try {
+					const { data, error } = await supabase.storage.from('avatars').download(profile?.avatar_url || '');
+					if (error) {
+						throw error;
+					}
+					const url = URL.createObjectURL(data);
+					setAvatarUrl(url);
+				} catch (error) {
+					const message = (error as Error).message;
+					enqueueSnackbar(message, { variant: 'error' });
 				}
-				const url = URL.createObjectURL(data);
-				setAvatarUrl(url);
-			} catch (error) {
-				const message = (error as Error).message;
-				enqueueSnackbar(message, { variant: 'error' });
 			}
 		}
-		if (isComplete) {
+		if (isComplete && user) {
 			downloadImage();
 		}
-	}, [enqueueSnackbar, isComplete, profile]);
+	}, [enqueueSnackbar, isComplete, profile, user]);
 
 	const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
 		setAnchorElUser(event.currentTarget);
@@ -96,11 +98,11 @@ export default function UserActions() {
 						open={Boolean(anchorElUser)}
 						onClose={handleCloseUserMenu}>
 						{settings.map((setting) => (
-							<MenuItem key={setting.path} onClick={handleCloseUserMenu}>
-								<Link to={setting.path}>
+							<Link to={setting.path} key={setting.path}>
+								<MenuItem onClick={handleCloseUserMenu}>
 									<Typography textAlign='center'>{setting.label}</Typography>
-								</Link>
-							</MenuItem>
+								</MenuItem>
+							</Link>
 						))}
 						<MenuItem onClick={handleSignout}>Logout</MenuItem>
 					</Menu>

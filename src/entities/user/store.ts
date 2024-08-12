@@ -87,7 +87,7 @@ export const slice = createSlice({
 			state.session = session;
 		},
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		reset: () => ({ ...initialState, status: 'completed' }),
+		reset: () => ({ ...initialState, isComplete: true }),
 	},
 	extraReducers: (builder) => {
 		builder
