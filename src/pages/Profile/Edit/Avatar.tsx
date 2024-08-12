@@ -2,6 +2,8 @@ import { ChangeEvent, useState } from 'react';
 import { supabase } from '@/services/supabaseClient';
 import { useSnackbar } from 'notistack';
 import Button from '@mui/material/Button';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { styled } from '@mui/material/styles';
 import AvatarWrapper from '@/components/ui/Avatar';
 import Skeleton from '@mui/material/Skeleton';
 
@@ -10,6 +12,18 @@ interface Props {
 	url: string;
 	onChange: (avatarUrl: string) => void;
 }
+
+const VisuallyHiddenInput = styled('input')({
+	clip: 'rect(0 0 0 0)',
+	clipPath: 'inset(50%)',
+	height: 1,
+	overflow: 'hidden',
+	position: 'absolute',
+	bottom: 0,
+	left: 0,
+	whiteSpace: 'nowrap',
+	width: 1,
+});
 
 export default function Avatar({ className, url, onChange }: Props) {
 	const { enqueueSnackbar } = useSnackbar();
@@ -54,20 +68,15 @@ export default function Avatar({ className, url, onChange }: Props) {
 					<div className='flex h-32 aspect-square mb-4'>
 						<AvatarWrapper src={url} className='!w-full !h-full' />
 					</div>
-					<div className='inline-block'>
-						<label className='relative inline-block'>
-							<Button className='relative z-0' variant='contained'>
-								<span>{uploading ? 'Uploading' : 'Upload'}</span>
-								<input
-									className='opacity-0 absolute w-full h-full top-0 left-0 z-10'
-									type='file'
-									accept='image/*'
-									onChange={uploadAvatar}
-									disabled={uploading}
-								/>
-							</Button>
-						</label>
-					</div>
+					<Button
+						component='label'
+						variant='contained'
+						tabIndex={-1}
+						startIcon={<CloudUploadIcon />}
+						disabled={uploading}>
+						{uploading ? 'Uploading' : 'Upload file'}
+						<VisuallyHiddenInput type='file' onChange={uploadAvatar} />
+					</Button>
 				</div>
 			)}
 		</>

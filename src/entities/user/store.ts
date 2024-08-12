@@ -26,7 +26,7 @@ interface ProfileParams {
 }
 export const getProfile = createAsyncThunk('@@user/getProfile', async (params: ProfileParams, { rejectWithValue }) => {
 	const { user, session } = params;
-	const { data: profile, error } = await getProfileApi(params.user);
+	const { data: profile, error } = await getProfileApi(user);
 	if (error) {
 		return rejectWithValue(error.message);
 	} else {
@@ -82,6 +82,10 @@ export const slice = createSlice({
 		setProfile: (state, { payload }: PayloadAction<Database['public']['Tables']['profiles']['Row']>) => {
 			state.profile = payload;
 		},
+		setSession: (state, { payload: { user, session } }: PayloadAction<{ user: User; session: Session }>) => {
+			state.user = user;
+			state.session = session;
+		},
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		reset: () => ({ ...initialState, status: 'completed' }),
 	},
@@ -117,12 +121,12 @@ export const slice = createSlice({
 			})
 			.addCase(getProfile.fulfilled, (state, { payload: { profile, user, session } }) => {
 				state.profile = profile;
-				state.session = session;
 				state.user = user;
+				state.session = session;
 				state.isComplete = true;
 			});
 	},
 });
 
-export const { reset, setProfile } = slice.actions;
+export const { reset, setProfile, setSession } = slice.actions;
 export const reducer = slice.reducer;
