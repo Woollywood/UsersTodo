@@ -33,29 +33,14 @@ function Unauthorized() {
 export default function UserActions() {
 	const { enqueueSnackbar } = useSnackbar();
 	const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-	const { user, status } = useSelector((state: Store) => state.user);
+	const { user, isComplete, profile } = useSelector((state: Store) => state.user);
 	const [avatarUrl, setAvatarUrl] = useState('');
 	const dispatch: StoreDispatch = useDispatch();
 
 	useEffect(() => {
-		async function getAvatarUrl() {
-			const { data, error } = await supabase
-				.from('profiles')
-				.select('avatar_url')
-				.eq('id', user?.id || '')
-				.single();
-
-			if (error) {
-				enqueueSnackbar(error.message, { variant: 'error' });
-				return;
-			}
-
-			return data.avatar_url;
-		}
 		async function downloadImage() {
-			const avatarUrl = await getAvatarUrl();
 			try {
-				const { data, error } = await supabase.storage.from('avatars').download(avatarUrl!);
+				const { data, error } = await supabase.storage.from('avatars').download(profile?.avatar_url || '');
 				if (error) {
 					throw error;
 				}
@@ -66,10 +51,10 @@ export default function UserActions() {
 				enqueueSnackbar(message, { variant: 'error' });
 			}
 		}
-		if (user) {
+		if (isComplete) {
 			downloadImage();
 		}
-	}, [user, enqueueSnackbar]);
+	}, [enqueueSnackbar, isComplete, profile]);
 
 	const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
 		setAnchorElUser(event.currentTarget);
@@ -86,44 +71,43 @@ export default function UserActions() {
 
 	return (
 		<>
-			{status === 'idle' && <Skeleton variant='circular' width={40} height={40} />}
-			{status === 'completed' &&
-				(user ? (
-					<Box sx={{ flexGrow: 0 }}>
-						<Tooltip title='Open settings'>
-							<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-								<Avatar alt='avatar' src={avatarUrl} />
-							</IconButton>
-						</Tooltip>
-						<Menu
-							sx={{ mt: '45px' }}
-							id='menu-appbar'
-							anchorEl={anchorElUser}
-							anchorOrigin={{
-								vertical: 'top',
-								horizontal: 'right',
-							}}
-							keepMounted
-							transformOrigin={{
-								vertical: 'top',
-								horizontal: 'right',
-							}}
-							open={Boolean(anchorElUser)}
-							onClose={handleCloseUserMenu}>
-							{settings.map((setting) => (
-								<MenuItem key={setting.path} onClick={handleCloseUserMenu}>
-									<Link to={setting.path}>
-										<Typography textAlign='center'>{setting.label}</Typography>
-									</Link>
-								</MenuItem>
-							))}
-							<MenuItem onClick={handleSignout}>Logout</MenuItem>
-						</Menu>
-					</Box>
-				) : (
-					<Unauthorized />
-				))}
-			{status === 'rejected' && <Unauthorized />}
+			{!isComplete ? (
+				<Skeleton variant='circular' width={40} height={40} />
+			) : user ? (
+				<Box sx={{ flexGrow: 0 }}>
+					<Tooltip title='Open settings'>
+						<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+							<Avatar alt='avatar' src={avatarUrl} />
+						</IconButton>
+					</Tooltip>
+					<Menu
+						sx={{ mt: '45px' }}
+						id='menu-appbar'
+						anchorEl={anchorElUser}
+						anchorOrigin={{
+							vertical: 'top',
+							horizontal: 'right',
+						}}
+						keepMounted
+						transformOrigin={{
+							vertical: 'top',
+							horizontal: 'right',
+						}}
+						open={Boolean(anchorElUser)}
+						onClose={handleCloseUserMenu}>
+						{settings.map((setting) => (
+							<MenuItem key={setting.path} onClick={handleCloseUserMenu}>
+								<Link to={setting.path}>
+									<Typography textAlign='center'>{setting.label}</Typography>
+								</Link>
+							</MenuItem>
+						))}
+						<MenuItem onClick={handleSignout}>Logout</MenuItem>
+					</Menu>
+				</Box>
+			) : (
+				<Unauthorized />
+			)}
 		</>
 	);
 }

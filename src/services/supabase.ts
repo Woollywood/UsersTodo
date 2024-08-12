@@ -44,6 +44,41 @@ export type Database = {
           },
         ]
       }
+      todos: {
+        Row: {
+          body: string
+          created_at: string
+          id: number
+          status: Database["public"]["Enums"]["TODO_STATUS"]
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: number
+          status: Database["public"]["Enums"]["TODO_STATUS"]
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: number
+          status?: Database["public"]["Enums"]["TODO_STATUS"]
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "todos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -52,7 +87,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      TODO_STATUS: "TODO" | "IN_PROGRESS" | "COMPLETED"
     }
     CompositeTypes: {
       [_ in never]: never

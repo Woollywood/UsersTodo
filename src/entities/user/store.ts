@@ -1,47 +1,73 @@
-import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { type User, type Session } from '@supabase/supabase-js';
 import { supabase } from '@/services/supabaseClient';
-
-export type Status = 'idle' | 'rejected' | 'completed';
+import { type Database } from '@/services/supabase';
+import { getProfile as getProfileApi } from './api';
 
 export interface InitialState {
 	user: User | null;
 	session: Session | null;
-	status: Status;
+	profile: Database['public']['Tables']['profiles']['Row'] | null;
+	isComplete: boolean;
 	error: string | null;
 }
 
 const initialState: InitialState = {
 	user: null,
 	session: null,
-	status: 'idle',
+	profile: null,
+	isComplete: false,
 	error: null,
 };
+
+interface ProfileParams {
+	user: User;
+	session: Session;
+}
+export const getProfile = createAsyncThunk('@@user/getProfile', async (params: ProfileParams, { rejectWithValue }) => {
+	const { user, session } = params;
+	const { data: profile, error } = await getProfileApi(params.user);
+	if (error) {
+		return rejectWithValue(error.message);
+	} else {
+		return { profile, user, session };
+	}
+});
 
 export const signin = createAsyncThunk(
 	'@@user/signin',
 	async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
-		const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-		if (error) {
-			return rejectWithValue(error.message);
-		} else {
-			return data;
+		const { data: userData, error: userError } = await supabase.auth.signInWithPassword({ email, password });
+		if (userError) {
+			return rejectWithValue(userError.message);
 		}
+
+		const { data: profileData, error: profileError } = await getProfileApi(userData.user);
+		if (profileError) {
+			return rejectWithValue(profileError.message);
+		}
+
+		return { user: userData, profile: profileData };
 	}
 );
 
 export const signup = createAsyncThunk(
 	'@@user/signup',
 	async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
-		const { data, error } = await supabase.auth.signUp({
+		const { data: userData, error: userError } = await supabase.auth.signUp({
 			email,
 			password,
 		});
-		if (error) {
-			return rejectWithValue(error.message);
-		} else {
-			return data;
+		if (userError) {
+			return rejectWithValue(userError.message);
 		}
+
+		const { data: profileData, error: profileError } = await getProfileApi(userData.user);
+		if (profileError) {
+			return rejectWithValue(profileError.message);
+		}
+
+		return { user: userData, profile: profileData };
 	}
 );
 
@@ -53,51 +79,50 @@ export const slice = createSlice({
 	name: 'user',
 	initialState,
 	reducers: {
-		setUser: (state, { payload }: PayloadAction<User>) => {
-			state.user = payload;
-			state.status = 'completed';
-		},
-		setSession: (state, { payload }: PayloadAction<Session>) => {
-			state.session = payload;
-			state.status = 'completed';
-		},
-		setAll: (state, { payload }: PayloadAction<{ user: User; session: Session }>) => {
-			state.user = payload.user;
-			state.session = payload.session;
-			state.status = 'completed';
-		},
-		setStatus: (state, { payload }: PayloadAction<Status>) => {
-			state.status = payload;
+		setProfile: (state, { payload }: PayloadAction<Database['public']['Tables']['profiles']['Row']>) => {
+			state.profile = payload;
 		},
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		reset: (_) => ({ ...initialState, status: 'completed' }),
+		reset: () => ({ ...initialState, status: 'completed' }),
 	},
 	extraReducers: (builder) => {
 		builder
 			.addCase(signin.rejected, (state, { payload }) => {
-				state.status = 'rejected';
 				state.error = payload as string;
+				state.isComplete = true;
 			})
 			.addCase(signin.fulfilled, (state, { payload }) => {
-				state.status = 'completed';
-				state.session = payload?.session || null;
-				state.user = payload?.user || null;
+				state.session = payload.user.session;
+				state.user = payload.user.user;
+				state.profile = payload.profile;
+				state.isComplete = true;
 			})
 			.addCase(signup.rejected, (state, { payload }) => {
-				state.status = 'rejected';
 				state.error = payload as string;
+				state.isComplete = true;
 			})
 			.addCase(signup.fulfilled, (state, { payload }) => {
-				state.status = 'completed';
-				state.session = payload?.session || null;
-				state.user = payload?.user || null;
+				state.session = payload.user.session;
+				state.user = payload.user.user;
+				state.profile = payload.profile;
+				state.isComplete = true;
 			})
 			.addCase(signout.fulfilled, () => ({
 				...initialState,
-				status: 'completed',
-			}));
+				isComplete: true,
+			}))
+			.addCase(getProfile.rejected, (state, { payload }) => {
+				state.error = payload as string;
+				state.isComplete = true;
+			})
+			.addCase(getProfile.fulfilled, (state, { payload: { profile, user, session } }) => {
+				state.profile = profile;
+				state.session = session;
+				state.user = user;
+				state.isComplete = true;
+			});
 	},
 });
 
-export const { setUser, setSession, setAll, reset, setStatus } = slice.actions;
+export const { reset, setProfile } = slice.actions;
 export const reducer = slice.reducer;
