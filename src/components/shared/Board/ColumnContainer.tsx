@@ -13,8 +13,8 @@ interface Props {
 	column: Column;
 	todos: TodoType[];
 	onDeleteColumn: (column: Column) => void;
-	onCreateColumn: (column: Column) => void;
 	onUpdateColumn: (column: Column, title: string) => void;
+	onCreateTodo: (column: Column) => void;
 	onDeleteTodo: (id: TodoType['id']) => void;
 	onUpdateTodo: (id: TodoType['id'], value: string) => void;
 }
@@ -23,8 +23,8 @@ export default function ColumnContainer({
 	column,
 	todos,
 	onDeleteColumn,
-	onCreateColumn,
 	onUpdateColumn,
+	onCreateTodo,
 	onDeleteTodo,
 	onUpdateTodo,
 }: Props) {
@@ -93,7 +93,7 @@ export default function ColumnContainer({
 					)}
 				</div>
 				<div className='flex items-center'>
-					<IconButton aria-label='create' onClick={() => onCreateColumn(column)}>
+					<IconButton aria-label='create' onClick={() => onCreateTodo(column)}>
 						<AddCircleOutlineIcon />
 					</IconButton>
 					<IconButton aria-label='delete' onClick={() => onDeleteColumn(column)}>
