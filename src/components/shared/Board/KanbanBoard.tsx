@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react';
 import Button from '@mui/material/Button';
 import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import ColumnContainer from './ColumnContainer';
+import Todo from './Todo';
 import {
 	DndContext,
 	DragEndEvent,
+	DragOverEvent,
 	DragOverlay,
 	DragStartEvent,
 	PointerSensor,
@@ -28,9 +30,10 @@ export type Todo = {
 export default function KanbanBoard() {
 	const [columns, setColumns] = useState<Column[]>([]);
 	const [activeColumn, setActiveColumn] = useState<Column | null>(null);
-	const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
+	const columnsIds = useMemo(() => columns.map((col) => col.id), [columns]);
 
 	const [todos, setTodos] = useState<Todo[]>([]);
+	const [activeTodo, setActiveTodo] = useState<Todo | null>(null);
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -54,6 +57,7 @@ export default function KanbanBoard() {
 
 	function onDelete(column: Column) {
 		setColumns([...columns.filter((col) => col.id !== column.id)]);
+		setTodos(todos.filter((t) => t.columnId !== column.id));
 	}
 
 	function onUpdate(column: Column, title: string) {
@@ -68,22 +72,33 @@ export default function KanbanBoard() {
 	}
 
 	function onCreateTodo(column: Column) {
-		setTodos([...todos, { id: generateID(), columnId: column.id, content: `Todo Content` }]);
+		setTodos([...todos, { id: generateID(), columnId: column.id, content: `Todo Content ${todos.length}` }]);
 	}
 
 	function onDeleteTodo(id: Todo['id']) {
 		setTodos([...todos.filter((todo) => todo.id !== id)]);
 	}
 
+	function onUpdateTodo(id: Todo['id'], value: string) {
+		setTodos(todos.map((todo) => (todo.id === id ? { ...todo, content: value } : todo)));
+	}
+
 	function onDragStart(event: DragStartEvent) {
-		console.log(event);
 		if (event.active.data.current?.type === 'Column') {
 			setActiveColumn(event.active.data.current.column);
+			return;
+		}
+
+		if (event.active.data.current?.type === 'Todo') {
+			setActiveTodo(event.active.data.current.todo);
 			return;
 		}
 	}
 
 	function onDragEnd({ active, over }: DragEndEvent) {
+		setActiveColumn(null);
+		setActiveTodo(null);
+
 		if (!over) {
 			return;
 		}
@@ -103,12 +118,51 @@ export default function KanbanBoard() {
 		});
 	}
 
+	function onDragOver({ active, over }: DragOverEvent) {
+		if (!over) {
+			return;
+		}
+
+		const activeTodoId = active.id;
+		const overTodoId = over.id;
+
+		if (activeTodoId === overTodoId) {
+			return;
+		}
+
+		const isActiveTodo = active.data.current?.type === 'Todo';
+		const isOverTodo = over.data.current?.type === 'Todo';
+
+		if (!isActiveTodo) {
+			return;
+		}
+
+		if (isActiveTodo && isOverTodo) {
+			setTodos((todos) => {
+				const activeIndex = todos.findIndex((t) => t.id === activeTodoId);
+				const overIndex = todos.findIndex((t) => t.id === overTodoId);
+				todos[activeIndex].columnId = todos[overIndex].columnId;
+				return arrayMove(todos, activeIndex, overIndex);
+			});
+		}
+
+		const isOverAColumn = over.data.current?.type === 'Column';
+
+		if (isActiveTodo && isOverAColumn) {
+			setTodos((todos) => {
+				const activeIndex = todos.findIndex((t) => t.id === activeTodoId);
+				todos[activeIndex].columnId = overTodoId;
+				return arrayMove(todos, activeIndex, activeIndex);
+			});
+		}
+	}
+
 	return (
 		<div className='m-auto flex w-full h-full overflow-x-auto overflow-y-hidden'>
 			<div className='flex items-start gap-4'>
-				<DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+				<DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
 					<div className='flex gap-4 h-full'>
-						<SortableContext items={columnsId}>
+						<SortableContext items={columnsIds}>
 							{columns.map((column) => (
 								<ColumnContainer
 									key={column.id}
@@ -118,6 +172,7 @@ export default function KanbanBoard() {
 									onCreate={onCreateTodo}
 									onUpdate={onUpdate}
 									onDeleteTodo={onDeleteTodo}
+									onUpdateTodo={onUpdateTodo}
 								/>
 							))}
 						</SortableContext>
@@ -137,6 +192,14 @@ export default function KanbanBoard() {
 									onCreate={onCreateTodo}
 									onUpdate={onUpdate}
 									onDeleteTodo={onDeleteTodo}
+									onUpdateTodo={onUpdateTodo}
+								/>
+							)}
+							{activeTodo && (
+								<Todo
+									todo={activeTodo}
+									onDelete={() => onDeleteTodo(activeTodo.id)}
+									onUpdate={onUpdateTodo}
 								/>
 							)}
 						</DragOverlay>,

@@ -1,10 +1,10 @@
-import { useState, KeyboardEvent } from 'react';
+import { useState, KeyboardEvent, useMemo } from 'react';
 import { Column, Todo as TodoType } from './KanbanBoard';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { useSortable } from '@dnd-kit/sortable';
+import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import TextField from '@mui/material/TextField';
 import Todo from './Todo';
@@ -16,11 +16,19 @@ interface Props {
 	onCreate: (column: Column) => void;
 	onUpdate: (column: Column, title: string) => void;
 	onDeleteTodo: (id: TodoType['id']) => void;
+	onUpdateTodo: (id: TodoType['id'], value: string) => void;
 }
 
-export default function ColumnContainer({ column, todos, onDelete, onCreate, onUpdate, onDeleteTodo }: Props) {
+export default function ColumnContainer({
+	column,
+	todos,
+	onDelete,
+	onCreate,
+	onUpdate,
+	onDeleteTodo,
+	onUpdateTodo,
+}: Props) {
 	const [editMode, setEditMode] = useState(false);
-
 	const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
 		id: column.id,
 		data: {
@@ -29,11 +37,11 @@ export default function ColumnContainer({ column, todos, onDelete, onCreate, onU
 		},
 		disabled: editMode,
 	});
-
 	const style = {
 		transition,
 		transform: CSS.Transform.toString(transform),
 	};
+	const todosIds = useMemo(() => todos.map((todo) => todo.id), [todos]);
 
 	if (isDragging) {
 		return (
@@ -94,9 +102,16 @@ export default function ColumnContainer({ column, todos, onDelete, onCreate, onU
 				</div>
 			</div>
 			<div className='space-y-2'>
-				{todos.map((todo) => (
-					<Todo key={todo.id} {...todo} onDelete={() => onDeleteTodo(todo.id)} />
-				))}
+				<SortableContext items={todosIds}>
+					{todos.map((todo) => (
+						<Todo
+							key={todo.id}
+							todo={todo}
+							onDelete={() => onDeleteTodo(todo.id)}
+							onUpdate={onUpdateTodo}
+						/>
+					))}
+				</SortableContext>
 			</div>
 		</div>
 	);
