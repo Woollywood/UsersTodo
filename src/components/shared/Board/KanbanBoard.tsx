@@ -168,9 +168,9 @@ export default function KanbanBoard() {
 									key={column.id}
 									todos={todos.filter((todo) => todo.columnId === column.id)}
 									column={column}
-									onDelete={onDelete}
-									onCreate={onCreateTodo}
-									onUpdate={onUpdate}
+									onDeleteColumn={onDelete}
+									onCreateColumn={onCreateTodo}
+									onUpdateColumn={onUpdate}
 									onDeleteTodo={onDeleteTodo}
 									onUpdateTodo={onUpdateTodo}
 								/>
@@ -188,9 +188,9 @@ export default function KanbanBoard() {
 								<ColumnContainer
 									column={activeColumn}
 									todos={todos.filter((todo) => todo.columnId === activeColumn.id)}
-									onDelete={onDelete}
-									onCreate={onCreateTodo}
-									onUpdate={onUpdate}
+									onDeleteColumn={onDelete}
+									onCreateColumn={onCreateTodo}
+									onUpdateColumn={onUpdate}
 									onDeleteTodo={onDeleteTodo}
 									onUpdateTodo={onUpdateTodo}
 								/>

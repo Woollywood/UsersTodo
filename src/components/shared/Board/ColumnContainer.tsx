@@ -12,9 +12,9 @@ import Todo from './Todo';
 interface Props {
 	column: Column;
 	todos: TodoType[];
-	onDelete: (column: Column) => void;
-	onCreate: (column: Column) => void;
-	onUpdate: (column: Column, title: string) => void;
+	onDeleteColumn: (column: Column) => void;
+	onCreateColumn: (column: Column) => void;
+	onUpdateColumn: (column: Column, title: string) => void;
 	onDeleteTodo: (id: TodoType['id']) => void;
 	onUpdateTodo: (id: TodoType['id'], value: string) => void;
 }
@@ -22,9 +22,9 @@ interface Props {
 export default function ColumnContainer({
 	column,
 	todos,
-	onDelete,
-	onCreate,
-	onUpdate,
+	onDeleteColumn,
+	onCreateColumn,
+	onUpdateColumn,
 	onDeleteTodo,
 	onUpdateTodo,
 }: Props) {
@@ -83,7 +83,7 @@ export default function ColumnContainer({
 								size='small'
 								autoFocus
 								defaultValue={column.title}
-								onChange={(e) => onUpdate(column, e.target.value)}
+								onChange={(e) => onUpdateColumn(column, e.target.value)}
 								onBlur={() => setEditMode(false)}
 								onKeyDown={onKeyDown}
 							/>
@@ -93,10 +93,10 @@ export default function ColumnContainer({
 					)}
 				</div>
 				<div className='flex items-center'>
-					<IconButton aria-label='create' onClick={() => onCreate(column)}>
+					<IconButton aria-label='create' onClick={() => onCreateColumn(column)}>
 						<AddCircleOutlineIcon />
 					</IconButton>
-					<IconButton aria-label='delete' onClick={() => onDelete(column)}>
+					<IconButton aria-label='delete' onClick={() => onDeleteColumn(column)}>
 						<DeleteIcon />
 					</IconButton>
 				</div>
