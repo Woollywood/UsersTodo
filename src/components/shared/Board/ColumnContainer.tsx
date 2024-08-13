@@ -1,13 +1,12 @@
-import { useState, KeyboardEvent, useMemo } from 'react';
 import { Column, Todo as TodoType } from './KanbanBoard';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { SortableContext, useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { SortableContext } from '@dnd-kit/sortable';
 import TextField from '@mui/material/TextField';
 import Todo from './Todo';
+import { useColumn } from './hooks';
 
 interface Props {
 	column: Column;
@@ -28,20 +27,8 @@ export default function ColumnContainer({
 	onDeleteTodo,
 	onUpdateTodo,
 }: Props) {
-	const [editMode, setEditMode] = useState(false);
-	const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
-		id: column.id,
-		data: {
-			type: 'Column',
-			column,
-		},
-		disabled: editMode,
-	});
-	const style = {
-		transition,
-		transform: CSS.Transform.toString(transform),
-	};
-	const todosIds = useMemo(() => todos.map((todo) => todo.id), [todos]);
+	const { editMode, setEditMode, setNodeRef, attributes, listeners, isDragging, style, todosIds, onKeyDown } =
+		useColumn(column, todos);
 
 	if (isDragging) {
 		return (
@@ -50,14 +37,6 @@ export default function ColumnContainer({
 				ref={setNodeRef}
 				{...style}></div>
 		);
-	}
-
-	function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-		if (event.key !== 'Enter') {
-			return;
-		}
-
-		setEditMode(false);
 	}
 
 	return (

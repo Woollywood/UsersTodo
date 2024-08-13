@@ -1,8 +1,9 @@
-import { useState, useMemo, SetStateAction } from 'react';
+import { useState, useMemo, SetStateAction, KeyboardEvent } from 'react';
 import { Column, Todo } from './KanbanBoard';
 import { generateID } from './utils';
 import { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
+import { arrayMove, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 export function useKanbanColumns() {
 	const [columns, setColumns] = useState<Column[]>([]);
@@ -148,4 +149,80 @@ export function useDragOver({ setTodos }: { setTodos: (value: React.SetStateActi
 	}
 
 	return onDragOver;
+}
+
+export function useColumn(column: Column, todos: Todo[]) {
+	const [editMode, setEditMode] = useState(false);
+	const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
+		id: column.id,
+		data: {
+			type: 'Column',
+			column,
+		},
+		disabled: editMode,
+	});
+
+	const style = {
+		transition,
+		transform: CSS.Transform.toString(transform),
+	};
+
+	const todosIds = useMemo(() => todos.map((todo) => todo.id), [todos]);
+
+	function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+		if (event.key !== 'Enter') {
+			return;
+		}
+
+		setEditMode(false);
+	}
+
+	return { editMode, setEditMode, setNodeRef, attributes, listeners, isDragging, style, todosIds, onKeyDown };
+}
+
+export function useTodo(todo: Todo) {
+	const { id } = todo;
+	const [isMouseOver, setMouseOver] = useState(false);
+	const [editMode, setEditMode] = useState(false);
+
+	const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
+		id,
+		data: {
+			type: 'Todo',
+			todo,
+		},
+		disabled: editMode,
+	});
+
+	const style = {
+		transition,
+		transform: CSS.Transform.toString(transform),
+	};
+
+	function toggleEditMode() {
+		setEditMode((prev) => !prev);
+		setMouseOver(false);
+	}
+
+	function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+		if (event.key === 'Enter' && event.shiftKey) {
+			return;
+		}
+		if (event.key === 'Enter') {
+			toggleEditMode();
+		}
+	}
+
+	return {
+		editMode,
+		toggleEditMode,
+		isMouseOver,
+		setMouseOver,
+		setNodeRef,
+		attributes,
+		listeners,
+		isDragging,
+		style,
+		onKeyDown,
+	};
 }

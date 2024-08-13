@@ -1,10 +1,8 @@
-import { useState, KeyboardEvent } from 'react';
 import { Todo as TodoType } from './KanbanBoard';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import TextField from '@mui/material/TextField';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { useTodo } from './hooks';
 
 interface Props {
 	todo: TodoType;
@@ -14,36 +12,18 @@ interface Props {
 
 export default function Todo({ todo, onDelete, onUpdate }: Props) {
 	const { id, content } = todo;
-	const [isMouseOver, setMouseOver] = useState(false);
-	const [editMode, setEditMode] = useState(false);
-
-	const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
-		id,
-		data: {
-			type: 'Todo',
-			todo,
-		},
-		disabled: editMode,
-	});
-
-	const style = {
-		transition,
-		transform: CSS.Transform.toString(transform),
-	};
-
-	function toggleEditMode() {
-		setEditMode((prev) => !prev);
-		setMouseOver(false);
-	}
-
-	function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-		if (event.key === 'Enter' && event.shiftKey) {
-			return;
-		}
-		if (event.key === 'Enter') {
-			toggleEditMode();
-		}
-	}
+	const {
+		editMode,
+		toggleEditMode,
+		isMouseOver,
+		setMouseOver,
+		setNodeRef,
+		attributes,
+		listeners,
+		isDragging,
+		style,
+		onKeyDown,
+	} = useTodo(todo);
 
 	if (isDragging) {
 		return (
