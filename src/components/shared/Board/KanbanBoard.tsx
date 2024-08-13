@@ -19,9 +19,9 @@ export type Column = {
 	id: ID;
 	title: string;
 };
-export type Task = {
+export type Todo = {
 	id: ID;
-	columnID: ID;
+	columnId: ID;
 	content: string;
 };
 
@@ -29,6 +29,8 @@ export default function KanbanBoard() {
 	const [columns, setColumns] = useState<Column[]>([]);
 	const [activeColumn, setActiveColumn] = useState<Column | null>(null);
 	const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
+
+	const [todos, setTodos] = useState<Todo[]>([]);
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -42,7 +44,7 @@ export default function KanbanBoard() {
 		return Math.floor(Math.random() * 10001);
 	}
 
-	function onCreate() {
+	function onCreateColumn() {
 		const columnToAdd: Column = {
 			id: generateID(),
 			title: `Column ${columns.length + 1}`,
@@ -63,6 +65,14 @@ export default function KanbanBoard() {
 				return { ...col, title };
 			})
 		);
+	}
+
+	function onCreateTodo(column: Column) {
+		setTodos([...todos, { id: generateID(), columnId: column.id, content: `Todo Content` }]);
+	}
+
+	function onDeleteTodo(id: Todo['id']) {
+		setTodos([...todos.filter((todo) => todo.id !== id)]);
 	}
 
 	function onDragStart(event: DragStartEvent) {
@@ -102,22 +112,32 @@ export default function KanbanBoard() {
 							{columns.map((column) => (
 								<ColumnContainer
 									key={column.id}
+									todos={todos.filter((todo) => todo.columnId === column.id)}
 									column={column}
 									onDelete={onDelete}
+									onCreate={onCreateTodo}
 									onUpdate={onUpdate}
+									onDeleteTodo={onDeleteTodo}
 								/>
 							))}
 						</SortableContext>
 					</div>
 					<div className='flex items-center justify-center h-[68px]'>
-						<Button variant='contained' startIcon={<ControlPointIcon />} onClick={onCreate}>
+						<Button variant='contained' startIcon={<ControlPointIcon />} onClick={onCreateColumn}>
 							Add Column
 						</Button>
 					</div>
 					{createPortal(
 						<DragOverlay>
 							{activeColumn && (
-								<ColumnContainer column={activeColumn} onDelete={onDelete} onUpdate={onUpdate} />
+								<ColumnContainer
+									column={activeColumn}
+									todos={todos.filter((todo) => todo.columnId === activeColumn.id)}
+									onDelete={onDelete}
+									onCreate={onCreateTodo}
+									onUpdate={onUpdate}
+									onDeleteTodo={onDeleteTodo}
+								/>
 							)}
 						</DragOverlay>,
 						document.body
