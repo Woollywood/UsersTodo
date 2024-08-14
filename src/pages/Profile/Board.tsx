@@ -2,7 +2,13 @@ import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import KanbanBoard from '@/components/shared/Board';
 import { Store, StoreDispatch } from '@/store';
-import { getColumnsFromUserId, createColumnFromUserId, deleteColumnFromColumnId } from '@/entities/todo/store';
+import {
+	getColumnsFromUserId,
+	createColumnFromUserId,
+	deleteColumnFromColumnId,
+	updateColumnFromColumnId,
+	type Column,
+} from '@/entities/todo/store';
 import { type ColumnRequiredFields } from '@/components/shared/Board/KanbanBoard';
 
 function isRejected(actionType: string) {
@@ -27,6 +33,13 @@ export default function TodoList() {
 		}
 	}
 
+	async function onUpdateColumn(column: ColumnRequiredFields, title: string) {
+		const response = await dispatch(updateColumnFromColumnId({ ...column, title } as Column));
+		if (isRejected(response.type)) {
+			throw new Error(response.payload as string);
+		}
+	}
+
 	useEffect(() => {
 		async function getColumns() {
 			await dispatch(getColumnsFromUserId(user?.id || ''));
@@ -45,6 +58,7 @@ export default function TodoList() {
 					todos={todos}
 					onCreateColumn={onCreateColumn}
 					onDeleteColumn={onDeleteColumn}
+					onUpdateColumn={onUpdateColumn}
 				/>
 			)}
 		</>

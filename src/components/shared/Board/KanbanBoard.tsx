@@ -24,6 +24,7 @@ interface Props {
 	todos: Required<TodoRequiredFields[]>;
 	onCreateColumn: () => Promise<ColumnRequiredFields>;
 	onDeleteColumn: (column: ColumnRequiredFields) => Promise<void>;
+	onUpdateColumn: (column: ColumnRequiredFields, title: string) => Promise<void>;
 }
 
 export default function KanbanBoard(props: Props) {
@@ -60,6 +61,16 @@ export default function KanbanBoard(props: Props) {
 		}
 	}
 
+	async function onUpdateColumnHandler(column: ColumnRequiredFields, title: string) {
+		try {
+			await props.onUpdateColumn(column, title);
+			onUpdateColumn(column, title);
+		} catch (error) {
+			const errorMsg = (error as Error).message;
+			enqueueSnackbar(errorMsg, { variant: 'error' });
+		}
+	}
+
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
@@ -84,7 +95,7 @@ export default function KanbanBoard(props: Props) {
 									todos={todos.filter((todo) => todo.column_id === column.id)}
 									column={column}
 									onDeleteColumn={onDeleteColumnHandler}
-									onUpdateColumn={onUpdateColumn}
+									onUpdateColumn={onUpdateColumnHandler}
 									onCreateTodo={onCreateTodo}
 									onDeleteTodo={onDeleteTodo}
 									onUpdateTodo={onUpdateTodo}

@@ -169,15 +169,11 @@ export function useColumn(column: ColumnRequiredFields, todos: TodoRequiredField
 
 	const todosIds = useMemo(() => todos.map((todo) => todo.id), [todos]);
 
-	function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-		if (event.key !== 'Enter') {
-			return;
-		}
-
+	function onSubmit() {
 		setEditMode(false);
 	}
 
-	return { editMode, setEditMode, setNodeRef, attributes, listeners, isDragging, style, todosIds, onKeyDown };
+	return { editMode, setEditMode, setNodeRef, attributes, listeners, isDragging, style, todosIds, onSubmit };
 }
 
 export function useTodo(todo: TodoRequiredFields) {

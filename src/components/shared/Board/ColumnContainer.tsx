@@ -7,6 +7,11 @@ import { SortableContext } from '@dnd-kit/sortable';
 import TextField from '@mui/material/TextField';
 import Todo from './Todo';
 import { useColumn } from './hooks';
+import { useForm } from 'react-hook-form';
+
+type FormData = {
+	title: string;
+};
 
 interface Props {
 	column: ColumnRequiredFields;
@@ -27,8 +32,17 @@ export default function ColumnContainer({
 	onDeleteTodo,
 	onUpdateTodo,
 }: Props) {
-	const { editMode, setEditMode, setNodeRef, attributes, listeners, isDragging, style, todosIds, onKeyDown } =
+	const { editMode, setEditMode, setNodeRef, attributes, listeners, isDragging, style, todosIds, onSubmit } =
 		useColumn(column, todos);
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<FormData>();
+	const onSubmitHandler = handleSubmit((data) => {
+		onSubmit();
+		onUpdateColumn(column, data.title);
+	});
 
 	if (isDragging) {
 		return (
@@ -56,17 +70,17 @@ export default function ColumnContainer({
 					onClick={() => setEditMode(true)}>
 					<Chip label='1' size='small' />
 					{editMode ? (
-						<div>
+						<form onSubmit={onSubmitHandler}>
 							<TextField
+								error={!!errors.title}
 								variant='outlined'
 								size='small'
 								autoFocus
 								defaultValue={column.title}
-								onChange={(e) => onUpdateColumn(column, e.target.value)}
+								{...register('title', { required: true })}
 								onBlur={() => setEditMode(false)}
-								onKeyDown={onKeyDown}
 							/>
-						</div>
+						</form>
 					) : (
 						<h2>{column.title}</h2>
 					)}
