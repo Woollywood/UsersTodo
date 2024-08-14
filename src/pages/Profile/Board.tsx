@@ -7,9 +7,13 @@ import {
 	createColumnFromUserId,
 	deleteColumnFromColumnId,
 	updateColumnFromColumnId,
+	createTodo,
+	deleteTodo,
+	updateTodo,
 	type Column,
+	Todo,
 } from '@/entities/todo/store';
-import { type ColumnRequiredFields } from '@/components/shared/Board/KanbanBoard';
+import { TodoRequiredFields, type ColumnRequiredFields } from '@/components/shared/Board/KanbanBoard';
 
 function isRejected(actionType: string) {
 	return actionType.includes('rejected');
@@ -40,6 +44,24 @@ export default function TodoList() {
 		}
 	}
 
+	async function onCreateTodo(columnId: number) {
+		const { payload } = await dispatch(createTodo({ columnId, userId: user?.id || '' }));
+		return payload as unknown as TodoRequiredFields;
+	}
+
+	async function onDeleteTodo(todoId: TodoRequiredFields['id']) {
+		const { payload } = await dispatch(deleteTodo(todoId));
+		return payload as unknown as TodoRequiredFields;
+	}
+
+	async function onUpdateTodo(todo: TodoRequiredFields, content: string) {
+		const response = await dispatch(updateTodo({ ...todo, content } as Todo));
+		if (isRejected(response.type)) {
+			throw new Error(response.payload as string);
+		}
+		return response.payload as Todo;
+	}
+
 	useEffect(() => {
 		async function getColumns() {
 			await dispatch(getColumnsFromUserId(user?.id || ''));
@@ -59,6 +81,9 @@ export default function TodoList() {
 					onCreateColumn={onCreateColumn}
 					onDeleteColumn={onDeleteColumn}
 					onUpdateColumn={onUpdateColumn}
+					onCreateTodo={onCreateTodo}
+					onDeleteTodo={onDeleteTodo}
+					onUpdateTodo={onUpdateTodo}
 				/>
 			)}
 		</>

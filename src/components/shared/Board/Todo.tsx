@@ -1,13 +1,18 @@
-import { TodoRequiredFields as TodoType } from './KanbanBoard';
+import { TodoRequiredFields, TodoRequiredFields as TodoType } from './KanbanBoard';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import TextField from '@mui/material/TextField';
 import { useTodo } from './hooks';
+import { useForm } from 'react-hook-form';
+
+type FormData = {
+	content: string;
+};
 
 interface Props {
 	todo: TodoType;
 	onDelete: (id: TodoType['id']) => void;
-	onUpdate: (id: TodoType['id'], value: string) => void;
+	onUpdate: (todo: TodoRequiredFields, value: string) => void;
 }
 
 export default function Todo({ todo, onDelete, onUpdate }: Props) {
@@ -22,8 +27,18 @@ export default function Todo({ todo, onDelete, onUpdate }: Props) {
 		listeners,
 		isDragging,
 		style,
-		onKeyDown,
+		onSubmit,
 	} = useTodo(todo);
+
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<FormData>();
+	const onSubmitHandler = handleSubmit((data) => {
+		onSubmit();
+		onUpdate(todo, data.content);
+	});
 
 	if (isDragging) {
 		return (
@@ -42,17 +57,19 @@ export default function Todo({ todo, onDelete, onUpdate }: Props) {
 				style={style}
 				{...attributes}
 				{...listeners}>
-				<TextField
-					size='small'
-					className='w-full'
-					multiline
-					maxRows={6}
-					value={content}
-					autoFocus
-					onBlur={toggleEditMode}
-					onKeyDown={onKeyDown}
-					onChange={(e) => onUpdate(id, e.target.value)}
-				/>
+				<form onSubmit={onSubmitHandler}>
+					<TextField
+						size='small'
+						className='w-full'
+						error={!!errors.content}
+						multiline
+						maxRows={6}
+						autoFocus
+						defaultValue={content}
+						{...register('content', { required: true })}
+						onBlur={() => onSubmitHandler()}
+					/>
+				</form>
 				{isMouseOver && (
 					<div className='absolute right-3 top-2'>
 						<IconButton aria-label='delete' onClick={() => onDelete(id)}>

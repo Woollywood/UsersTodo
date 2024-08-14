@@ -1,6 +1,5 @@
-import { useState, useMemo, SetStateAction, KeyboardEvent } from 'react';
+import { useState, useMemo, SetStateAction } from 'react';
 import { ColumnRequiredFields, TodoRequiredFields } from './KanbanBoard';
-import { generateID } from './utils';
 import { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core';
 import { arrayMove, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -36,8 +35,8 @@ export function useKanbanTodo(initialTodos: Required<TodoRequiredFields[]>) {
 	const [todos, setTodos] = useState<TodoRequiredFields[]>(initialTodos);
 	const [activeTodo, setActiveTodo] = useState<TodoRequiredFields | null>(null);
 
-	function onCreateTodo(column: ColumnRequiredFields) {
-		setTodos([...todos, { id: generateID(), column_id: column.id, content: `Todo Content ${todos.length}` }]);
+	function onCreateTodo({ columnId, todo }: { columnId: number; todo: TodoRequiredFields }) {
+		setTodos([...todos, { ...todo, column_id: columnId }]);
 	}
 
 	function onDeleteTodo(id: TodoRequiredFields['id']) {
@@ -200,13 +199,8 @@ export function useTodo(todo: TodoRequiredFields) {
 		setMouseOver(false);
 	}
 
-	function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-		if (event.key === 'Enter' && event.shiftKey) {
-			return;
-		}
-		if (event.key === 'Enter') {
-			toggleEditMode();
-		}
+	function onSubmit() {
+		toggleEditMode();
 	}
 
 	return {
@@ -219,6 +213,6 @@ export function useTodo(todo: TodoRequiredFields) {
 		listeners,
 		isDragging,
 		style,
-		onKeyDown,
+		onSubmit,
 	};
 }

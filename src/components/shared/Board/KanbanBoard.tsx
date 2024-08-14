@@ -25,6 +25,9 @@ interface Props {
 	onCreateColumn: () => Promise<ColumnRequiredFields>;
 	onDeleteColumn: (column: ColumnRequiredFields) => Promise<void>;
 	onUpdateColumn: (column: ColumnRequiredFields, title: string) => Promise<void>;
+	onCreateTodo: (columnId: number) => Promise<TodoRequiredFields>;
+	onDeleteTodo: (todoId: TodoRequiredFields['id']) => Promise<TodoRequiredFields>;
+	onUpdateTodo: (todo: TodoRequiredFields, title: string) => Promise<TodoRequiredFields>;
 }
 
 export default function KanbanBoard(props: Props) {
@@ -71,6 +74,36 @@ export default function KanbanBoard(props: Props) {
 		}
 	}
 
+	async function onCreateTodoHandler(columnId: number) {
+		try {
+			const payload = await props.onCreateTodo(columnId);
+			onCreateTodo({ columnId: payload.column_id!, todo: { ...payload } });
+		} catch (error) {
+			const errorMsg = (error as Error).message;
+			enqueueSnackbar(errorMsg, { variant: 'error' });
+		}
+	}
+
+	async function onDeleteTodoHandler(todoId: TodoRequiredFields['id']) {
+		try {
+			await props.onDeleteTodo(todoId);
+			onDeleteTodo(todoId);
+		} catch (error) {
+			const errorMsg = (error as Error).message;
+			enqueueSnackbar(errorMsg, { variant: 'error' });
+		}
+	}
+
+	async function onUpdateTodoHandler(todo: TodoRequiredFields, title: string) {
+		try {
+			await props.onUpdateTodo(todo, title);
+			onUpdateTodo(todo.id, title);
+		} catch (error) {
+			const errorMsg = (error as Error).message;
+			enqueueSnackbar(errorMsg, { variant: 'error' });
+		}
+	}
+
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
@@ -96,9 +129,9 @@ export default function KanbanBoard(props: Props) {
 									column={column}
 									onDeleteColumn={onDeleteColumnHandler}
 									onUpdateColumn={onUpdateColumnHandler}
-									onCreateTodo={onCreateTodo}
-									onDeleteTodo={onDeleteTodo}
-									onUpdateTodo={onUpdateTodo}
+									onCreateTodo={onCreateTodoHandler}
+									onDeleteTodo={onDeleteTodoHandler}
+									onUpdateTodo={onUpdateTodoHandler}
 								/>
 							))}
 						</SortableContext>
@@ -115,17 +148,17 @@ export default function KanbanBoard(props: Props) {
 									column={activeColumn}
 									todos={todos.filter((todo) => todo.column_id === activeColumn.id)}
 									onDeleteColumn={onDeleteColumnHandler}
-									onUpdateColumn={onUpdateColumn}
-									onCreateTodo={onCreateTodo}
-									onDeleteTodo={onDeleteTodo}
-									onUpdateTodo={onUpdateTodo}
+									onUpdateColumn={onUpdateColumnHandler}
+									onCreateTodo={onCreateTodoHandler}
+									onDeleteTodo={onDeleteTodoHandler}
+									onUpdateTodo={onUpdateTodoHandler}
 								/>
 							)}
 							{activeTodo && (
 								<Todo
 									todo={activeTodo}
 									onDelete={() => onDeleteTodo(activeTodo.id)}
-									onUpdate={onUpdateTodo}
+									onUpdate={() => onUpdateTodo(activeTodo.id, activeTodo.content)}
 								/>
 							)}
 						</DragOverlay>,

@@ -1,4 +1,4 @@
-import { ColumnRequiredFields, TodoRequiredFields as TodoType } from './KanbanBoard';
+import { ColumnRequiredFields, TodoRequiredFields, TodoRequiredFields as TodoType } from './KanbanBoard';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -18,9 +18,9 @@ interface Props {
 	todos: TodoType[];
 	onDeleteColumn: (column: ColumnRequiredFields) => void;
 	onUpdateColumn: (column: ColumnRequiredFields, title: string) => void;
-	onCreateTodo: (column: ColumnRequiredFields) => void;
-	onDeleteTodo: (id: TodoType['id']) => void;
-	onUpdateTodo: (id: TodoType['id'], value: string) => void;
+	onCreateTodo: (columnId: number) => Promise<void>;
+	onDeleteTodo: (id: TodoType['id']) => Promise<void>;
+	onUpdateTodo: (todo: TodoRequiredFields, value: string) => Promise<void>;
 }
 
 export default function ColumnContainer({
@@ -68,7 +68,7 @@ export default function ColumnContainer({
 						!editMode && 'hover:bg-slate-300',
 					].join(' ')}
 					onClick={() => setEditMode(true)}>
-					<Chip label='1' size='small' />
+					<Chip label={todos.length} size='small' />
 					{editMode ? (
 						<form onSubmit={onSubmitHandler}>
 							<TextField
@@ -86,7 +86,7 @@ export default function ColumnContainer({
 					)}
 				</div>
 				<div className='flex items-center'>
-					<IconButton aria-label='create' onClick={() => onCreateTodo(column)}>
+					<IconButton aria-label='create' onClick={() => onCreateTodo(column.id)}>
 						<AddCircleOutlineIcon />
 					</IconButton>
 					<IconButton aria-label='delete' onClick={() => onDeleteColumn(column)}>
