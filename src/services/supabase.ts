@@ -9,6 +9,35 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      columns: {
+        Row: {
+          created_at: string
+          id: number
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Columns_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -46,30 +75,37 @@ export type Database = {
       }
       todos: {
         Row: {
-          body: string
+          column_id: number
+          content: string
           created_at: string
           id: number
           status: Database["public"]["Enums"]["TODO_STATUS"]
-          title: string
           user_id: string
         }
         Insert: {
-          body: string
+          column_id: number
+          content: string
           created_at?: string
           id?: number
           status: Database["public"]["Enums"]["TODO_STATUS"]
-          title: string
           user_id: string
         }
         Update: {
-          body?: string
+          column_id?: number
+          content?: string
           created_at?: string
           id?: number
           status?: Database["public"]["Enums"]["TODO_STATUS"]
-          title?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "todos_column_id_fkey"
+            columns: ["column_id"]
+            isOneToOne: false
+            referencedRelation: "columns"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "todos_user_id_fkey"
             columns: ["user_id"]
