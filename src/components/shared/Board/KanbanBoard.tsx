@@ -6,22 +6,59 @@ import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@
 import { SortableContext } from '@dnd-kit/sortable';
 import { createPortal } from 'react-dom';
 import { useDragEnd, useDragOver, useDragStart, useKanbanColumns, useKanbanTodo } from './hooks';
+import { useSnackbar } from 'notistack';
 
-export type ID = string | number;
-export type Column = {
+export type ID = number;
+export type ColumnRequiredFields = {
 	id: ID;
 	title: string;
 };
-export type Todo = {
+export type TodoRequiredFields = {
 	id: ID;
-	columnId: ID;
+	column_id: ID | null;
 	content: string;
 };
 
-export default function KanbanBoard() {
+interface Props {
+	columns: Required<ColumnRequiredFields[]>;
+	todos: Required<TodoRequiredFields[]>;
+	onCreateColumn: () => Promise<ColumnRequiredFields>;
+	onDeleteColumn: (column: ColumnRequiredFields) => Promise<void>;
+}
+
+export default function KanbanBoard(props: Props) {
+	const { enqueueSnackbar } = useSnackbar();
+
 	const { columns, setColumns, activeColumn, setActiveColumn, columnsIds, onCreateColumn, onUpdateColumn } =
-		useKanbanColumns();
-	const { todos, setTodos, activeTodo, setActiveTodo, onCreateTodo, onDeleteTodo, onUpdateTodo } = useKanbanTodo();
+		useKanbanColumns(props.columns);
+	const { todos, setTodos, activeTodo, setActiveTodo, onCreateTodo, onDeleteTodo, onUpdateTodo } = useKanbanTodo(
+		props.todos
+	);
+
+	function onDeleteColumn(column: ColumnRequiredFields) {
+		setColumns([...columns.filter((col) => col.id !== column.id)]);
+		setTodos(todos.filter((t) => t.column_id !== column.id));
+	}
+
+	async function onDeleteColumnHandler(column: ColumnRequiredFields) {
+		try {
+			await props.onDeleteColumn(column);
+			onDeleteColumn(column);
+		} catch (error) {
+			const errorMsg = (error as Error).message;
+			enqueueSnackbar(errorMsg, { variant: 'error' });
+		}
+	}
+
+	async function onCreateColumnHandler() {
+		try {
+			const payload = await props.onCreateColumn();
+			onCreateColumn({ ...payload });
+		} catch (error) {
+			const errorMsg = (error as Error).message;
+			enqueueSnackbar(errorMsg, { variant: 'error' });
+		}
+	}
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -30,11 +67,6 @@ export default function KanbanBoard() {
 			},
 		})
 	);
-
-	function onDeleteColumn(column: Column) {
-		setColumns([...columns.filter((col) => col.id !== column.id)]);
-		setTodos(todos.filter((t) => t.columnId !== column.id));
-	}
 
 	const onDragStart = useDragStart({ setActiveColumn, setActiveTodo });
 	const onDragEnd = useDragEnd({ setActiveColumn, setActiveTodo, setColumns });
@@ -49,9 +81,9 @@ export default function KanbanBoard() {
 							{columns.map((column) => (
 								<ColumnContainer
 									key={column.id}
-									todos={todos.filter((todo) => todo.columnId === column.id)}
+									todos={todos.filter((todo) => todo.column_id === column.id)}
 									column={column}
-									onDeleteColumn={onDeleteColumn}
+									onDeleteColumn={onDeleteColumnHandler}
 									onUpdateColumn={onUpdateColumn}
 									onCreateTodo={onCreateTodo}
 									onDeleteTodo={onDeleteTodo}
@@ -61,7 +93,7 @@ export default function KanbanBoard() {
 						</SortableContext>
 					</div>
 					<div className='flex items-center justify-center h-[68px]'>
-						<Button variant='contained' startIcon={<ControlPointIcon />} onClick={onCreateColumn}>
+						<Button variant='contained' startIcon={<ControlPointIcon />} onClick={onCreateColumnHandler}>
 							Add Column
 						</Button>
 					</div>
@@ -70,8 +102,8 @@ export default function KanbanBoard() {
 							{activeColumn && (
 								<ColumnContainer
 									column={activeColumn}
-									todos={todos.filter((todo) => todo.columnId === activeColumn.id)}
-									onDeleteColumn={onDeleteColumn}
+									todos={todos.filter((todo) => todo.column_id === activeColumn.id)}
+									onDeleteColumn={onDeleteColumnHandler}
 									onUpdateColumn={onUpdateColumn}
 									onCreateTodo={onCreateTodo}
 									onDeleteTodo={onDeleteTodo}

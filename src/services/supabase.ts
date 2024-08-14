@@ -14,19 +14,19 @@ export type Database = {
           created_at: string
           id: number
           title: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
           id?: number
           title: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
           id?: number
           title?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -75,7 +75,7 @@ export type Database = {
       }
       todos: {
         Row: {
-          column_id: number | null
+          column_id: number
           content: string
           created_at: string
           id: number
@@ -83,7 +83,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          column_id?: number | null
+          column_id: number
           content: string
           created_at?: string
           id?: number
@@ -91,7 +91,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          column_id?: number | null
+          column_id?: number
           content?: string
           created_at?: string
           id?: number

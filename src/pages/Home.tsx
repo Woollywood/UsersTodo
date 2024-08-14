@@ -1,5 +1,3 @@
-import KanbanBoard from '@/components/shared/Board';
-
 export function Component() {
-	return <KanbanBoard />;
+	return <h2 className='text-4xl font-medium text-center'>Welcome!</h2>;
 }

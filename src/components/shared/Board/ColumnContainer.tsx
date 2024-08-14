@@ -1,4 +1,4 @@
-import { Column, Todo as TodoType } from './KanbanBoard';
+import { ColumnRequiredFields, TodoRequiredFields as TodoType } from './KanbanBoard';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -9,11 +9,11 @@ import Todo from './Todo';
 import { useColumn } from './hooks';
 
 interface Props {
-	column: Column;
+	column: ColumnRequiredFields;
 	todos: TodoType[];
-	onDeleteColumn: (column: Column) => void;
-	onUpdateColumn: (column: Column, title: string) => void;
-	onCreateTodo: (column: Column) => void;
+	onDeleteColumn: (column: ColumnRequiredFields) => void;
+	onUpdateColumn: (column: ColumnRequiredFields, title: string) => void;
+	onCreateTodo: (column: ColumnRequiredFields) => void;
 	onDeleteTodo: (id: TodoType['id']) => void;
 	onUpdateTodo: (id: TodoType['id'], value: string) => void;
 }

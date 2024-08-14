@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import RequireAuth from '@/components/shared/RequireAuth';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@mui/material/Button';
-import TodoList from './TodoList';
+import Board from './Board';
 import { type Store } from '@/store';
 
 export function Component() {
@@ -30,7 +30,7 @@ export function Component() {
 							<Button variant='contained'>Edit</Button>
 						</Link>
 					</div>
-					<TodoList />
+					<Board />
 				</div>
 			)}
 		</RequireAuth>

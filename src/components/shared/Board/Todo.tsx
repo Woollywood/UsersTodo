@@ -1,4 +1,4 @@
-import { Todo as TodoType } from './KanbanBoard';
+import { TodoRequiredFields as TodoType } from './KanbanBoard';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import TextField from '@mui/material/TextField';
